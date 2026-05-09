@@ -20,7 +20,6 @@ public class Specialization {
 
 	private String name; // Example: Cardiology, Neurology
 
-	@Lob
 	@Column(columnDefinition = "BYTEA", nullable = true) // To store image as BLOB
 	private byte[] specializationimage;
 
