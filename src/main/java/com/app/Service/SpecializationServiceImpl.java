@@ -21,8 +21,10 @@ public class SpecializationServiceImpl implements SpecializationService {
 	@Override
 	public Specialization addSpecialization(SpecializationDTO dto) {
 		Specialization specialization = new Specialization();
-		specialization.setName(dto.getName());
-		specialization.setSpecializationimage(dto.getSpecializationImage());
+		specialization.setName(dto.getName().trim());
+		byte[] specializationImage = dto.getSpecializationImage();
+		specialization.setSpecializationimage(
+				specializationImage != null && specializationImage.length > 0 ? specializationImage : null);
 		return specializationRepository.save(specialization);
 	}
 

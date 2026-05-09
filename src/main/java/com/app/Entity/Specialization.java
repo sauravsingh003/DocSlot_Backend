@@ -21,7 +21,7 @@ public class Specialization {
 	private String name; // Example: Cardiology, Neurology
 
 	@Lob
-	@Column(columnDefinition = "BYTEA") // To store image as BLOB
+	@Column(columnDefinition = "BYTEA", nullable = true) // To store image as BLOB
 	private byte[] specializationimage;
 
 	@OneToMany(mappedBy = "specialization", cascade = CascadeType.ALL)

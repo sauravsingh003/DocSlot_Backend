@@ -15,9 +15,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.multipart.MultipartFile;
 
 import com.app.DTO.DoctorDTO;
 import com.app.DTO.DoctorDTOResponse;
@@ -68,15 +66,18 @@ public class AdminController {
 	}
 
 	@PostMapping("/addSpecialization")
-	public ResponseEntity<Specialization> addSpecialization(@RequestParam("name") String name,
-			@RequestParam("specializationImage") MultipartFile file) {
+	public ResponseEntity<SpecializationDTO> addSpecialization(@RequestBody SpecializationDTO dto) {
 		try {
-			SpecializationDTO dto = new SpecializationDTO();
-			dto.setName(name);
-			dto.setSpecializationImage(file.getBytes()); // Convert file to byte array
+			if (dto == null || dto.getName() == null || dto.getName().trim().isEmpty()) {
+				return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+			}
 
 			Specialization savedSpecialization = specializationService.addSpecialization(dto);
-			return new ResponseEntity<>(savedSpecialization, HttpStatus.CREATED);
+			SpecializationDTO response = new SpecializationDTO();
+			response.setId(savedSpecialization.getId());
+			response.setName(savedSpecialization.getName());
+			response.setSpecializationImage(savedSpecialization.getSpecializationimage());
+			return new ResponseEntity<>(response, HttpStatus.CREATED);
 		} catch (Exception e) {
 			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
 		}
