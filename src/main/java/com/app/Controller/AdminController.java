@@ -29,7 +29,6 @@ import com.app.Service.UserService;
 
 @RestController
 @RequestMapping("/admin")
-@CrossOrigin("http://localhost:3000")
 public class AdminController {
 
 	@Autowired
