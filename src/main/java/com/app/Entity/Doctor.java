@@ -34,6 +34,7 @@ public class Doctor {
 	
 	
 	@Lob
+	@Column(columnDefinition = "BYTEA")
 	private byte[] doctorimage;
 
 	@ManyToOne
