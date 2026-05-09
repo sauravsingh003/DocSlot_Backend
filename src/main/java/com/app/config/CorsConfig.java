@@ -19,7 +19,7 @@ public class CorsConfig {
                 registry.addMapping("/**")
                         .allowedOrigins(
                                 "http://localhost:5173",
-                                "https://your-frontend-url.vercel.app"
+                                "https://doc-slot-frontend.vercel.app"
                         )
                         .allowedMethods("*")
                         .allowedHeaders("*")
