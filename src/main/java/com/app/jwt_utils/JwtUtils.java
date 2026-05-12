@@ -10,13 +10,15 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
+import com.app.Service.CustomerUserDetails;
+import com.app.Service.DoctorUserDetails;
+import com.app.Service.PatientUserDetails;
+
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
-import lombok.extern.slf4j.Slf4j;
 
 @Component
-@Slf4j
 public class JwtUtils {
 
     @Value("${SECRET_KEY}")
@@ -32,30 +34,53 @@ public class JwtUtils {
         key = Keys.hmacShaKeyFor(jwtSecret.getBytes());
     }
 
-    // Generates JWT token for both Customer and Trainer
+    // Generate JWT Token
     public String generateJwtToken(Authentication authentication) {
-    	System.out.printf("Generating JWT token for authentication: {}", authentication);
 
-        // Dynamically determine the principal (CustomerUserDetails or TrainerUserDetails)
-        UserDetails userPrincipal = (UserDetails) authentication.getPrincipal();
+        UserDetails userPrincipal =
+                (UserDetails) authentication.getPrincipal();
 
-        // Extract role (first authority in the collection)
-        String role = authentication.getAuthorities().stream()
-                                    .findFirst()
-                                    .map(authority -> authority.getAuthority())
-                                    .orElse("UNKNOWN");
+        String role = authentication.getAuthorities()
+                .stream()
+                .findFirst()
+                .map(authority -> authority.getAuthority())
+                .orElse("UNKNOWN");
+
+        Long userId = null;
+
+        // Extract ID based on user type
+        if (userPrincipal instanceof DoctorUserDetails) {
+
+            userId = ((DoctorUserDetails) userPrincipal).getId();
+
+        } else if (userPrincipal instanceof PatientUserDetails) {
+
+            userId = ((PatientUserDetails) userPrincipal).getId();
+
+        } else if (userPrincipal instanceof CustomerUserDetails) {
+
+            userId = ((CustomerUserDetails) userPrincipal).getId();
+        }
+
+        System.out.println("Generating JWT for: " + userPrincipal.getUsername());
 
         return Jwts.builder()
-                .setSubject(userPrincipal.getUsername()) // Username (email) as the subject
-                .claim("role", role) // Add role as a claim
-                .setIssuedAt(new Date()) // Issued time
-                .setExpiration(new Date((new Date()).getTime() + jwtExpirationMs)) // Expiration time
-                .signWith(key, SignatureAlgorithm.HS512) // Signing algorithm
+                .setSubject(userPrincipal.getUsername())
+                .claim("role", role)
+                .claim("id", userId)
+                .setIssuedAt(new Date())
+                .setExpiration(
+                        new Date(
+                                (new Date()).getTime() + jwtExpirationMs
+                        )
+                )
+                .signWith(key, SignatureAlgorithm.HS512)
                 .compact();
     }
 
-    // Extracts username (email) from JWT token
+    // Extract username
     public String getUserNameFromJwtToken(String token) {
+
         return Jwts.parserBuilder()
                 .setSigningKey(key)
                 .build()
@@ -64,8 +89,9 @@ public class JwtUtils {
                 .getSubject();
     }
 
-    // Extracts role from JWT token
+    // Extract role
     public String getRoleFromJwtToken(String token) {
+
         return Jwts.parserBuilder()
                 .setSigningKey(key)
                 .build()
@@ -74,17 +100,36 @@ public class JwtUtils {
                 .get("role", String.class);
     }
 
-    // Validates the JWT token
-    public boolean validateJwtToken(String jwtToken) {
-        try {
-            Jwts.parserBuilder()
+    // Extract ID
+    public Long getIdFromJwtToken(String token) {
+
+        Integer id = Jwts.parserBuilder()
                 .setSigningKey(key)
                 .build()
-                .parseClaimsJws(jwtToken); // Parses and validates the token
+                .parseClaimsJws(token)
+                .getBody()
+                .get("id", Integer.class);
+
+        return id != null ? id.longValue() : null;
+    }
+
+    // Validate JWT
+    public boolean validateJwtToken(String jwtToken) {
+
+        try {
+
+            Jwts.parserBuilder()
+                    .setSigningKey(key)
+                    .build()
+                    .parseClaimsJws(jwtToken);
+
             return true;
+
         } catch (Exception e) {
-        	System.out.printf("Invalid JWT token: {}", e.getMessage());
+
+            System.out.println("Invalid JWT token: " + e.getMessage());
         }
+
         return false;
     }
 }

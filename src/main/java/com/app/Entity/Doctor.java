@@ -15,6 +15,9 @@ import javax.persistence.Lob;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
+
+import javax.persistence.Basic;
+import javax.persistence.FetchType;
 @Entity
 public class Doctor {
 
@@ -34,6 +37,7 @@ public class Doctor {
 	
 	
 	@Lob
+	@Basic(fetch = FetchType.LAZY)
 	@Column(columnDefinition = "BYTEA")
 	private byte[] doctorimage;
 

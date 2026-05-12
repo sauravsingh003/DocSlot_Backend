@@ -1,6 +1,5 @@
 package com.app.Service;
 
-import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -34,95 +33,125 @@ public class DoctorServiceImpl implements DoctorService {
 	private SpecializationRepository specializationRepository;
 
 	public String addDoctor(DoctorDTO doctorDTO) {
+
 		Doctor doctor = new Doctor();
+
 		doctor.setEmail(doctorDTO.getEmail());
 		doctor.setPassword(doctorDTO.getPassword());
 		doctor.setName(doctorDTO.getName());
 		doctor.setPhone(doctorDTO.getPhone());
 		doctor.setDegree(doctorDTO.getDegree());
 		doctor.setAmount(doctorDTO.getAmount());
-		doctor.setRole(Role.ROLE_DOCTOR); // Enum role
+		doctor.setRole(Role.ROLE_DOCTOR);
 
 		// Set specialization
-		Specialization specialization = specializationRepository.findById(doctorDTO.getSpecializationId())
-				.orElseThrow(() -> new RuntimeException("Specialization not found"));
+		Specialization specialization =
+				specializationRepository.findById(
+						doctorDTO.getSpecializationId()
+				).orElseThrow(() ->
+						new RuntimeException("Specialization not found")
+				);
+
 		doctor.setSpecialization(specialization);
 
-		// Convert image to byte[]
-		if (doctorDTO.getDoctorImage() != null && !doctorDTO.getDoctorImage().isEmpty()) {
-			try {
-				doctor.setDoctorimage(doctorDTO.getDoctorImage().getBytes());
-			} catch (IOException e) {
-				throw new RuntimeException("Error processing image", e);
-			}
-		}
+		/*
+		 * TEMPORARY FIX:
+		 * Disable doctor image storage to isolate PostgreSQL OID issue.
+		 * Image persistence will be redesigned later.
+		 */
+		doctor.setDoctorimage(null);
 
 		doctorRepository.save(doctor);
+
 		return "Doctor and User added successfully!";
 	}
 
 	public List<DoctorDTOResponse> getAllDoctors() {
-		List<Doctor> doctors = doctorRepository.findAll();
-
-		return doctors.stream().map(doctor -> new DoctorDTOResponse(doctor.getId(), doctor.getName(), doctor.getEmail(), // Added
-																															// email
-				doctor.getPassword(), // Added password
-				doctor.getPhone(), doctor.getDegree(), doctor.getAmount(),
-				doctor.getSpecialization() != null ? doctor.getSpecialization().getName() : null))
-				.collect(Collectors.toList());
+		return doctorRepository.getAllDoctorsLightweight();
 	}
 
 	// Get doctor by ID
 	@Override
 	public DoctorDTOResponse getDoctorById(Long id) {
+
 		Doctor doctor = doctorRepository.findById(id)
-				.orElseThrow(() -> new RuntimeException("Doctor with ID " + id + " not found"));
+				.orElseThrow(() ->
+						new RuntimeException(
+								"Doctor with ID " + id + " not found"
+						)
+				);
 
-		System.out.println("Retrieved Doctor: " + doctor);
-
-		// Convert entity to DTO response
-		return new DoctorDTOResponse(doctor.getId(), doctor.getName(), doctor.getEmail(), doctor.getPassword(),
-				doctor.getPhone(), doctor.getDegree(), doctor.getAmount(),
-				doctor.getSpecialization() != null ? doctor.getSpecialization().getName() : null);
+		return new DoctorDTOResponse(
+				doctor.getId(),
+				doctor.getName(),
+				doctor.getEmail(),
+				doctor.getPassword(),
+				doctor.getPhone(),
+				doctor.getDegree(),
+				doctor.getAmount(),
+				doctor.getSpecialization() != null
+						? doctor.getSpecialization().getName()
+						: null
+		);
 	}
 
-	public List<DoctorDtoImage> getDoctorsBySpecializationId(Long specializationId) {
-		List<Doctor> doctors = doctorRepository.findBySpecializationId(specializationId);
+	public List<DoctorDtoImage> getDoctorsBySpecializationId(
+			Long specializationId
+	) {
+
+		List<Doctor> doctors =
+				doctorRepository.findBySpecializationId(
+						specializationId
+				);
 
 		return doctors.stream()
-				.map(doctor -> new DoctorDtoImage(doctor.getId(), doctor.getName(), doctor.getPhone(),
-						doctor.getDegree(), doctor.getAmount(),
-						doctor.getSpecialization() != null ? doctor.getSpecialization().getName() : null,
-						doctor.getDoctorimage() // Ensure this is a byte[] field
-				)).collect(Collectors.toList());
+				.map(doctor ->
+						new DoctorDtoImage(
+								doctor.getId(),
+								doctor.getName(),
+								doctor.getPhone(),
+								doctor.getDegree(),
+								doctor.getAmount(),
+								doctor.getSpecialization() != null
+										? doctor.getSpecialization().getName()
+										: null,
+								null // image disabled temporarily
+						)
+				)
+				.collect(Collectors.toList());
 	}
-	
+
 	public String updateDoctor(Long id, DoctorDTO doctorDTO) {
-		
-	    // Fetch doctor by ID or throw exception if not found
-	    Doctor doctor = doctorRepository.findById(id)
-	            .orElseThrow(() -> new RuntimeException("Doctor not found with ID: " + id));
 
-	    // Update doctor details
-	    doctor.setName(doctorDTO.getName());
-	    doctor.setEmail(doctorDTO.getEmail());
-	    doctor.setPassword(doctorDTO.getPassword());
-	    doctor.setPhone(doctorDTO.getPhone());
-	    doctor.setDegree(doctorDTO.getDegree());
-	    doctor.setRole(Role.ROLE_DOCTOR);
-	    doctor.setAmount(doctorDTO.getAmount());
+		Doctor doctor = doctorRepository.findById(id)
+				.orElseThrow(() ->
+						new RuntimeException(
+								"Doctor not found with ID: " + id
+						)
+				);
 
-	    // Fetch and set specialization
-	    Specialization specialization = specializationRepository.findById(doctorDTO.getSpecializationId())
-	            .orElseThrow(() -> new RuntimeException("Specialization not found"));
-	    doctor.setSpecialization(specialization);
+		doctor.setName(doctorDTO.getName());
+		doctor.setEmail(doctorDTO.getEmail());
+		doctor.setPassword(doctorDTO.getPassword());
+		doctor.setPhone(doctorDTO.getPhone());
+		doctor.setDegree(doctorDTO.getDegree());
+		doctor.setRole(Role.ROLE_DOCTOR);
+		doctor.setAmount(doctorDTO.getAmount());
 
-	    // Save updated doctor entity
-	    doctorRepository.save(doctor);
+		Specialization specialization =
+				specializationRepository.findById(
+						doctorDTO.getSpecializationId()
+				).orElseThrow(() ->
+						new RuntimeException("Specialization not found")
+				);
 
-	    return "Doctor updated successfully!";
+		doctor.setSpecialization(specialization);
+
+		// Keep image disabled temporarily
+		doctor.setDoctorimage(null);
+
+		doctorRepository.save(doctor);
+
+		return "Doctor updated successfully!";
 	}
-
-
-
 }

@@ -43,30 +43,59 @@ public class CustomUserDetailsService implements UserDetailsService {
 	    private PatientRepository patientRepository;
 
 	    @Override
-	    public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
-	        // Check in Customer entity
-	        Optional<User> customer = customerRepository.findByEmail(email);
+	    public UserDetails loadUserByUsername(String email)
+	            throws UsernameNotFoundException {
+
+	        System.out.println("STEP 1 - Started authentication");
+
+	        // Check User table
+	        System.out.println("STEP 2 - Checking User table");
+
+	        Optional<User> customer =
+	                customerRepository.findByEmail(email);
+
 	        if (customer.isPresent()) {
-	        	System.out.println(customer.get().getName());
+
+	            System.out.println("STEP 3 - Found in User table");
+
 	            return new CustomerUserDetails(customer.get());
 	        }
 
-	        // Check in Doctor entity
-	        Optional<Doctor> doctor = doctorRepository.findByEmail(email);
+	        // Check Doctor table
+	        System.out.println("STEP 4 - Checking Doctor table");
+
+	        Optional<Doctor> doctor =
+	                doctorRepository.findByEmail(email);
+
+	        System.out.println("STEP 5 - Doctor query completed");
+
 	        if (doctor.isPresent()) {
-	        	System.out.println(doctor.get().getName());
+
+	            System.out.println("STEP 6 - Doctor found");
+
+	            System.out.println("Doctor Email: " + doctor.get().getEmail());
+
 	            return new DoctorUserDetails(doctor.get());
 	        }
-	        
-	        // Check in Patient entity
-	        Optional<Patient> patient = patientRepository.findByEmail(email);
+
+	        // Check Patient table
+	        System.out.println("STEP 7 - Checking Patient table");
+
+	        Optional<Patient> patient =
+	                patientRepository.findByEmail(email);
+
 	        if (patient.isPresent()) {
-	        	System.out.println(patient.get().getName());
+
+	            System.out.println("STEP 8 - Patient found");
+
 	            return new PatientUserDetails(patient.get());
 	        }
 
-	        // If neither found
-	        throw new UsernameNotFoundException("User not found with email: " + email);
+	        System.out.println("STEP 9 - User not found");
+
+	        throw new UsernameNotFoundException(
+	                "User not found with email: " + email
+	        );
 	    }
 
 }

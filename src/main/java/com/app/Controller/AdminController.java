@@ -41,14 +41,37 @@ public class AdminController {
 	private PasswordEncoder passwordEncoder;
 
 	@PostMapping("/addDoctor")
-	public ResponseEntity<String> addDoctor(@ModelAttribute DoctorDTO doctorDTO) {
-		doctorDTO.setPassword(passwordEncoder.encode(doctorDTO.getPassword()));
-		String response = doctorService.addDoctor(doctorDTO);
-		if (response.equals("Doctor and User added successfully!")) {
-			return ResponseEntity.status(HttpStatus.CREATED).body(response);
-		} else {
-			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
-		}
+	public ResponseEntity<String> addDoctor(@RequestBody DoctorDTO doctorDTO) {
+
+	    try {
+
+	        doctorDTO.setPassword(
+	                passwordEncoder.encode(doctorDTO.getPassword())
+	        );
+
+	        String response = doctorService.addDoctor(doctorDTO);
+
+	        if (response.equals("Doctor and User added successfully!")) {
+
+	            return ResponseEntity
+	                    .status(HttpStatus.CREATED)
+	                    .body(response);
+
+	        } else {
+
+	            return ResponseEntity
+	                    .status(HttpStatus.BAD_REQUEST)
+	                    .body(response);
+	        }
+
+	    } catch (Exception e) {
+
+	        e.printStackTrace();
+
+	        return ResponseEntity
+	                .status(HttpStatus.INTERNAL_SERVER_ERROR)
+	                .body(e.getMessage());
+	    }
 	}
 
 	// Get all doctors
