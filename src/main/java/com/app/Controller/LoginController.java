@@ -22,35 +22,54 @@ import com.app.jwt_utils.JwtUtils;
 import lombok.extern.slf4j.Slf4j;
 
 @RestController
-@CrossOrigin(origins = "http://localhost:3000")
 @RequestMapping("/login")
 @Slf4j
 public class LoginController {
-//dep : JWT utils : for generating JWT
+
+	// JWT Utility
 	@Autowired
 	private JwtUtils utils;
-	// dep : Auth mgr
+
+	// Authentication Manager
 	@Autowired
 	private AuthenticationManager manager;
-	
+
 	@PostMapping
 	public ResponseEntity<?> validateUserCreateToken(@RequestBody @Valid AuthReq request) {
-		// store incoming user details(not yet validated) into Authentication object
-		// Authentication i/f ---> implemented by UserNamePasswordAuthToken
-		UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(request.getEmail(),
-				request.getPassword());
-		System.out.println("auth token " + authToken);
-		try {
-			// authenticate the credentials
-			Authentication authenticatedDetails = manager.authenticate(authToken);
-			System.out.println("auth token again " + authenticatedDetails);
-			// => auth succcess
-			return ResponseEntity.ok(new AuthResp("Auth successful!", utils.generateJwtToken(authenticatedDetails),authenticatedDetails));
-		} catch (BadCredentialsException e) { 
-			// send back err resp code
-			System.out.println("err " + e);
-			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e.getMessage());
-		}
 
+		// Create authentication token
+		UsernamePasswordAuthenticationToken authToken =
+				new UsernamePasswordAuthenticationToken(
+						request.getEmail(),
+						request.getPassword());
+
+		System.out.println("Auth token: " + authToken);
+
+		try {
+
+			// Authenticate user
+			Authentication authenticatedDetails = manager.authenticate(authToken);
+
+			System.out.println("Authenticated user: " + authenticatedDetails.getName());
+
+			// Generate JWT token
+			String jwtToken = utils.generateJwtToken(authenticatedDetails);
+
+			// Return clean response
+			return ResponseEntity.ok(
+					new AuthResp(
+							"Auth successful!",
+							jwtToken
+					)
+			);
+
+		} catch (BadCredentialsException e) {
+
+			System.out.println("Authentication failed: " + e.getMessage());
+
+			return ResponseEntity
+					.status(HttpStatus.UNAUTHORIZED)
+					.body("Invalid email or password!");
+		}
 	}
 }

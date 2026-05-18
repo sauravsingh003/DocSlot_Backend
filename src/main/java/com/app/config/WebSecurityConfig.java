@@ -18,57 +18,106 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 
 import com.app.filters.JWTRequestFilter;
 
-@EnableWebSecurity // mandatory
-@Configuration // mandatory
-public class WebSecurityConfig  {
+@EnableWebSecurity
+@Configuration
+public class WebSecurityConfig {
 
 	@Autowired
 	private JWTRequestFilter filter;
-	
-	// configure BCryptPassword encode bean
-	
+
 	@Bean
 	public PasswordEncoder encoder() {
 		return new BCryptPasswordEncoder();
 	}
+
 	@Bean
 	public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-		http.cors().and().csrf().disable().exceptionHandling().authenticationEntryPoint((request, response, ex) -> {
-			response.sendError(HttpServletResponse.SC_UNAUTHORIZED, ex.getMessage());
-		}).and().authorizeRequests()
-        .antMatchers(
-            "/v3/api-docs/**",  // Allow Swagger UI and related endpoints
-            "/swagger-ui/**",
-            "/swagger-resources/**",
-            "/webjars/**",
-            "/swagger-ui.html"
-        ).permitAll()
-		.antMatchers("/patient/registerPatient").permitAll()
-		.antMatchers("/admin/getAllSpecialization").permitAll()
-		.antMatchers("/patient/getDoctorsBySpecialization/**").permitAll()
-		.antMatchers("/login").permitAll()
-		.antMatchers("/admin/**").hasRole("ADMIN")
-		.antMatchers("/patient/**").hasRole("PATIENT")
-		.antMatchers("/doctor/**").hasRole("DOCTOR")
-		.antMatchers("/receptionist/**").hasRole("RECEPTIONIST")
-		.antMatchers("/doctor/uploadPrescription/**").hasRole("DOCTOR")
-		.antMatchers("/patient/download/**").hasRole("PATIENT")
-		.antMatchers("/", "/login","/register").permitAll() // enabling global
-								// access to all
-								// urls with
-								// /auth
-				.antMatchers(HttpMethod.OPTIONS).permitAll().anyRequest().authenticated().and()
-				.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS).and()
-				.addFilterBefore(filter, UsernamePasswordAuthenticationFilter.class);
+
+		http
+			.cors()
+			.and()
+			.csrf()
+			.disable()
+
+			.exceptionHandling()
+			.authenticationEntryPoint((request, response, ex) -> {
+				response.sendError(
+						HttpServletResponse.SC_UNAUTHORIZED,
+						ex.getMessage()
+				);
+			})
+
+			.and()
+
+			.authorizeRequests()
+
+			// Swagger
+			.antMatchers(
+					"/v3/api-docs/**",
+					"/swagger-ui/**",
+					"/swagger-resources/**",
+					"/webjars/**",
+					"/swagger-ui.html"
+			).permitAll()
+
+			// Public APIs
+			.antMatchers("/", "/login", "/register").permitAll()
+
+			.antMatchers("/login").permitAll()
+
+			.antMatchers("/patient/registerPatient").permitAll()
+
+			.antMatchers("/patient/getAllDoctors").permitAll()
+
+			.antMatchers(
+					"/patient/getDoctorsBySpecialization/**"
+			).permitAll()
+
+			.antMatchers("/admin/getAllSpecialization")
+			.permitAll()
+
+			// Role-based APIs
+			.antMatchers("/admin/**").hasRole("ADMIN")
+
+			.antMatchers("/patient/**").hasRole("PATIENT")
+
+			.antMatchers("/doctor/**").hasRole("DOCTOR")
+
+			.antMatchers("/receptionist/**")
+			.hasRole("RECEPTIONIST")
+
+			.antMatchers("/doctor/uploadPrescription/**")
+			.hasRole("DOCTOR")
+
+			.antMatchers("/patient/download/**")
+			.hasRole("PATIENT")
+
+			.antMatchers(HttpMethod.OPTIONS)
+			.permitAll()
+
+			.anyRequest()
+			.authenticated()
+
+			.and()
+
+			.sessionManagement()
+			.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+
+			.and()
+
+			.addFilterBefore(
+					filter,
+					UsernamePasswordAuthenticationFilter.class
+			);
 
 		return http.build();
 	}
 
-	// configure auth mgr bean : to be used in Authentication REST controller
 	@Bean
-	public AuthenticationManager authenticatonMgr(AuthenticationConfiguration config) throws Exception {
+	public AuthenticationManager authenticatonMgr(
+			AuthenticationConfiguration config
+	) throws Exception {
+
 		return config.getAuthenticationManager();
 	}
-
 }
-

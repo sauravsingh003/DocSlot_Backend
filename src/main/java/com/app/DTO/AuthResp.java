@@ -1,27 +1,31 @@
 package com.app.DTO;
 
-import org.springframework.security.core.Authentication;
-
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
-
-@Getter
-@Setter
-@ToString
 public class AuthResp {
 
     private String message;
     private String jwt;
-    private Authentication authenticatedDetails;
 
     public AuthResp() {
-
     }
 
-    public AuthResp(String message, String jwt, Authentication authenticatedDetails) {
+    public AuthResp(String message, String jwt) {
         this.message = message;
         this.jwt = jwt;
-        this.authenticatedDetails = authenticatedDetails;
+    }
+
+    public String getMessage() {
+        return message;
+    }
+
+    public void setMessage(String message) {
+        this.message = message;
+    }
+
+    public String getJwt() {
+        return jwt;
+    }
+
+    public void setJwt(String jwt) {
+        this.jwt = jwt;
     }
 }

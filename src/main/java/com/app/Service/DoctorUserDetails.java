@@ -9,65 +9,69 @@ import org.springframework.security.core.userdetails.UserDetails;
 
 import com.app.Entity.Doctor;
 
-import lombok.ToString;
-
 @SuppressWarnings("serial")
-@ToString
 public class DoctorUserDetails implements UserDetails {
-	 private Doctor doctor;
 
-	 public DoctorUserDetails(Doctor doctor) {
-		    if (doctor == null) {
-		        throw new IllegalArgumentException("doctor cannot be null");
-		    }
-		    this.doctor = doctor;
-		}
+    private final Doctor doctor;
 
+    public DoctorUserDetails(Doctor doctor) {
 
-	    @Override
-	    public Collection<? extends GrantedAuthority> getAuthorities() {
-	        return Arrays.asList(new SimpleGrantedAuthority(doctor.getRole().name()));
-	    }
+        if (doctor == null) {
+            throw new IllegalArgumentException("Doctor cannot be null");
+        }
 
-	    @Override
-	    public String getPassword() {
-	        return doctor.getPassword();
-	    }
+        this.doctor = doctor;
+    }
 
-	    @Override
-	    public String getUsername() {
-	        return doctor.getEmail();
-	    }
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
 
-	    @Override
-	    public boolean isAccountNonExpired() {
-	        return true;
-	    }
+        return Arrays.asList(
+                new SimpleGrantedAuthority(
+                        doctor.getRole().name()
+                )
+        );
+    }
 
-	    @Override
-	    public boolean isAccountNonLocked() {
-	        return true;
-	    }
+    @Override
+    public String getPassword() {
+        return doctor.getPassword();
+    }
 
-	    @Override
-	    public boolean isCredentialsNonExpired() {
-	        return true;
-	    }
+    @Override
+    public String getUsername() {
+        return doctor.getEmail();
+    }
 
-	    @Override
-	    public boolean isEnabled() {
-	        return true;
-	    }
+    @Override
+    public boolean isAccountNonExpired() {
+        return true;
+    }
 
-	    public Long getId() {
-	        return doctor.getId();
-	    }
+    @Override
+    public boolean isAccountNonLocked() {
+        return true;
+    }
 
-	    public String getName() {
-	        return doctor.getName();
-	    }
+    @Override
+    public boolean isCredentialsNonExpired() {
+        return true;
+    }
 
-	    public String getRole() {
-	        return doctor.getRole().name();
-	    }
+    @Override
+    public boolean isEnabled() {
+        return true;
+    }
+
+    public Long getId() {
+        return doctor.getId();
+    }
+
+    public String getName() {
+        return doctor.getName();
+    }
+
+    public String getRole() {
+        return doctor.getRole().name();
+    }
 }
